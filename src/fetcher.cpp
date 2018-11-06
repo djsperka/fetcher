@@ -11,17 +11,19 @@
 #include <algorithm>
 #include <map>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 using namespace std;
 using namespace boost::filesystem;
-
+using boost::algorithm::to_lower_copy;
 
 bool my_match(const path& p, string& key)
 {
 	bool b = false;
-	if (to_lower(p.extension()) == string(".bmp"))
+	cerr << p.string() << endl;
+	if (to_lower_copy(p.extension().string()) == string(".bmp"))
 	{
 		b = true;
-		key = p.stem();
+		key = p.stem().string();
 	}
 	return b;
 }
@@ -32,7 +34,7 @@ template<class K>
 	class Fetcher: public map<K, path>
 	{
 	private:
-		bool (*match)(const path& p, K& key);
+		bool (*m_match)(const path& p, K& key);
 		void scan_path(const path& p)
 		{
 			K key;
@@ -61,6 +63,17 @@ int main(int argc, char* argv[])
     cout << "Usage: tut4 path\n";
     return 1;
   }
+  cerr << "path is " << argv[1] << endl;
+  Fetcher<string> myfiles(argv[1], my_match);
+
+  for (map<string, path>::iterator it = myfiles.begin(); it != myfiles.end(); it++)
+	  cout << it->second.string() << endl;
+
+  return 0;
+}
+
+
+#if 0
 
   path p (argv[1]);
 
@@ -99,3 +112,5 @@ int main(int argc, char* argv[])
 
   return 0;
 }
+
+#endif
