@@ -9,17 +9,49 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include <boost/filesystem.hpp>
 using namespace std;
 using namespace boost::filesystem;
 
 
-//template(class K) {
-//	class Fetcher: public map<K, path>
-//	{
-//		Fetcher(const string& folder, bool (*match)(const path& p, K& key))
-//		{
-//}
+bool my_match(const path& p, string& key)
+{
+	bool b = false;
+	if (to_lower(p.extension()) == string(".bmp"))
+	{
+		b = true;
+		key = p.stem();
+	}
+	return b;
+}
+
+
+
+template<class K>
+	class Fetcher: public map<K, path>
+	{
+	private:
+		bool (*match)(const path& p, K& key);
+		void scan_path(const path& p)
+		{
+			K key;
+			if (is_regular_file(p) && m_match(p, key))
+				this->insert(make_pair(key, p));
+			else if (is_directory(p))
+			{
+				for (auto&& x : directory_iterator(p))
+					scan_path(x.path());
+			}
+		};
+
+	public:
+		Fetcher(const string& folder, bool (*match)(const path& p, K& key))
+		{
+			path p(folder);
+			scan_path(p);
+		};
+	};
 
 
 int main(int argc, char* argv[])
